@@ -45,6 +45,9 @@ yarn-error.log*
 /local.db-shm
 /local.db-wal
 
+# service worker is stamped at build time (prebuild/predev) from sw/sw.js
+/public/sw.js
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
