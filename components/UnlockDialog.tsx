@@ -24,8 +24,9 @@ export function UnlockDialog({
     const ok = await unlock(password)
     setBusy(false)
     if (ok) {
-      onUnlocked?.()
-      onClose()
+      // On success, hand off to onUnlocked if given (edit gate stays put),
+      // otherwise just close (topbar dialog).
+      ;(onUnlocked ?? onClose)()
     } else {
       setError('Incorrect password.')
     }
