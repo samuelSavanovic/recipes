@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:setup": "node --env-file-if-exists=.env.local --import tsx ./scripts/db-setup.ts",
+    "db:import": "node --env-file-if-exists=.env.local --import tsx ./scripts/import-notion.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
