@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { TopBar } from './TopBar'
 import { ListView } from './ListView'
+import { RecipeView } from './RecipeView'
 
 // The client shell. It switches views off usePathname() so the same cached "/"
 // document can also render deep links offline (the SW navigation fallback). The
@@ -23,8 +24,11 @@ export default function App() {
 }
 
 function ViewForPath({ pathname }: { pathname: string }) {
-  // Recipe and edit routes are wired in later; the list is the shell's home and
-  // the safe fallback for any other path.
-  void pathname
+  if (pathname.startsWith('/recipe/')) {
+    const slug = decodeURIComponent(pathname.slice('/recipe/'.length))
+    if (slug) return <RecipeView slug={slug} />
+  }
+  // Edit routes are wired in a later step; the list is the shell's home and the
+  // safe fallback for any other path.
   return <ListView />
 }

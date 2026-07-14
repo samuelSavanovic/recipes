@@ -291,6 +291,10 @@ body {
   border-color: #bcc9bc;
   color: var(--accent);
 }
+/* Main ingredients can be a longer phrase — let it wrap in the meta line. */
+.rb-tag-main {
+  white-space: normal;
+}
 
 .rb-empty {
   font-family: var(--mono);
