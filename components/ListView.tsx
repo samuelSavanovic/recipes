@@ -1,7 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { AppLink } from './AppLink'
 import { useRecipes } from '@/lib/store'
 import { distinctCuisines, filterRecipes } from '@/lib/filter'
 import { COOK_TIMES, cookTimeLabel, type CookTime } from '@/lib/types'
@@ -86,7 +86,7 @@ export function ListView() {
         <ul className="rb-cards">
           {filtered.map((r) => (
             <li key={r.id}>
-              <Link className="rb-card" href={`/recipe/${r.id}`}>
+              <AppLink className="rb-card" href={`/recipe/${r.id}`}>
                 <span className="rb-card-title">{r.title}</span>
                 <span className="rb-card-meta">
                   <span className="rb-tag">{r.cuisine || '—'}</span>
@@ -94,7 +94,7 @@ export function ListView() {
                     {cookTimeLabel(r.cook_time)}
                   </span>
                 </span>
-              </Link>
+              </AppLink>
             </li>
           ))}
         </ul>

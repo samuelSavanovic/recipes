@@ -1,26 +1,25 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useRecipes } from '@/lib/store'
-import { useIsClient } from '@/lib/use-is-client'
+import { useAppPath } from '@/lib/use-app-path'
 import { TopBar } from './TopBar'
 import { ListView } from './ListView'
 import { RecipeView } from './RecipeView'
 import { EditView } from './EditView'
 import { UnlockDialog } from './UnlockDialog'
 
-// The client shell. It switches views off usePathname() so the same cached "/"
-// document can also render deep links offline (the SW navigation fallback). The
-// mounted gate defers view rendering to after hydration, so a cached "/" shell
-// served for a "/recipe/x" URL doesn't mismatch on the server-rendered markup.
+// The client shell. It switches views off the real window.location path so the
+// same cached "/" document can render deep links offline (the SW navigation
+// fallback). Path is null until mounted, which defers view rendering to after
+// hydration so a cached "/" shell served for a "/recipe/x" URL doesn't mismatch.
 export default function App() {
-  const pathname = usePathname()
-  const mounted = useIsClient()
+  const path = useAppPath()
 
   return (
     <div className="rb-root">
       <TopBar />
-      {mounted ? <ViewForPath pathname={pathname} /> : null}
+      {path !== null ? <ViewForPath pathname={path} /> : null}
     </div>
   )
 }

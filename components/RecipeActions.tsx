@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { AppLink } from './AppLink'
 import { useRecipes } from '@/lib/store'
 
 // The recipe view's nav row: back to the book, plus an Edit button that only
@@ -9,13 +9,13 @@ export function RecipeActions({ slug }: { slug: string }) {
   const { hasToken } = useRecipes()
   return (
     <div className="rb-recipe-nav">
-      <Link href="/" className="rb-link">
+      <AppLink href="/" className="rb-link">
         ← the book
-      </Link>
+      </AppLink>
       {hasToken && (
-        <Link href={`/edit/${slug}`} className="rb-btn">
+        <AppLink href={`/edit/${slug}`} className="rb-btn">
           Edit
-        </Link>
+        </AppLink>
       )}
     </div>
   )

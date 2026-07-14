@@ -1,7 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import { useState } from 'react'
+import { AppLink } from './AppLink'
 import { useRecipes } from '@/lib/store'
 import { UnlockDialog } from './UnlockDialog'
 
@@ -14,16 +14,16 @@ export function TopBar() {
 
   return (
     <header className="rb-topbar">
-      <Link href="/" className="rb-brand">
+      <AppLink href="/" className="rb-brand">
         <span className="rb-brand-mark">◍</span>
         <span className="rb-brand-name">mise</span>
         <span className="rb-brand-sub">recipe book</span>
-      </Link>
+      </AppLink>
 
       {hasToken ? (
-        <Link href="/new" className="rb-btn rb-btn-primary">
+        <AppLink href="/new" className="rb-btn rb-btn-primary">
           + New recipe
-        </Link>
+        </AppLink>
       ) : (
         <button className="rb-unlock" onClick={() => setShowUnlock(true)}>
           edit
