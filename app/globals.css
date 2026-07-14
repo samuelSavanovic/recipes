@@ -1,49 +1,582 @@
+/* Cook's procedure-card design system, ported verbatim from the approved
+   prototype (RecipeBook.jsx). Tokens live on :root; the base look sits on
+   <body>; component classes keep their rb- prefix. This is a bespoke warm-paper
+   aesthetic — deliberately no dark mode. */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --paper: #efe9dd;
+  --paper-2: #e7dfcf;
+  --ink: #241f1a;
+  --ink-soft: #5c5346;
+  --line: #c9bda6;
+  --accent: #3a5a45; /* deep herb green — not terracotta, not cream-serif */
+  --accent-soft: #dfe6dc;
+  --hot: #a2432b; /* paprika, used sparingly */
+  --mono: 'SFMono-Regular', ui-monospace, 'JetBrains Mono', Menlo, Consolas,
+    monospace;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino,
+    Georgia, serif;
 }
 
 * {
   box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
   padding: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* Topbar */
+.rb-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px;
+  border-bottom: 1.5px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  z-index: 10;
+}
+.rb-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink);
+  padding: 0;
+  text-decoration: none;
+}
+.rb-brand-mark {
+  color: var(--accent);
+  font-size: 19px;
+  transform: translateY(2px);
+}
+.rb-brand-name {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+.rb-brand-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink-soft);
+}
+
+.rb-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 34px 28px 90px;
+}
+
+/* Buttons */
+.rb-btn {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  padding: 8px 15px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.12s;
+  text-decoration: none;
+  display: inline-block;
+}
+.rb-btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.rb-btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #f4f1e8;
+}
+.rb-btn-primary:hover {
+  background: #2c4636;
+  border-color: #2c4636;
+}
+.rb-btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.rb-btn-danger {
+  border-color: var(--hot);
+  color: var(--hot);
+}
+.rb-btn-danger:hover {
+  background: var(--hot);
+  color: var(--paper);
+}
+.rb-link {
+  background: none;
+  border: none;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: none;
+}
+.rb-link:hover {
+  color: var(--accent);
+}
+/* Small mono "edit" affordance in the topbar (unlock trigger) */
+.rb-unlock {
+  background: none;
+  border: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 6px 4px;
+}
+.rb-unlock:hover {
+  color: var(--accent);
+}
+
+/* List head */
+.rb-list-head {
+  margin-bottom: 26px;
+}
+.rb-page-title {
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+.rb-page-sub {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-soft);
   margin: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Filters */
+.rb-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 30px;
+  padding-bottom: 22px;
+  border-bottom: 1.5px solid var(--line);
+}
+.rb-search {
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 9px 12px;
+  border: 1.5px solid var(--line);
+  background: var(--paper-2);
+  color: var(--ink);
+  border-radius: 2px;
+  width: 100%;
+}
+.rb-search:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.rb-chiprow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.rb-chiplabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ink-soft);
+  width: 52px;
+}
+.rb-chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 5px 11px;
+  border: 1.5px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: 99px;
+  transition: all 0.12s;
+}
+.rb-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.rb-chip-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #f4f1e8;
+}
+.rb-chip-on:hover {
+  color: #f4f1e8;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+/* Cards */
+.rb-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.rb-cards li {
+  border-bottom: 1px solid var(--line);
+}
+.rb-card {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  transition: padding-left 0.14s;
+  text-decoration: none;
+}
+.rb-card:hover {
+  padding-left: 12px;
+}
+.rb-card:hover .rb-card-title {
+  color: var(--accent);
+}
+.rb-card-title {
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.rb-card-meta {
+  display: flex;
+  gap: 7px;
+  flex-shrink: 0;
+  align-items: baseline;
+}
+
+.rb-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.rb-tag-time {
+  background: var(--accent-soft);
+  border-color: #bcc9bc;
+  color: var(--accent);
+}
+
+.rb-empty {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--ink-soft);
+  padding: 40px 0;
+  text-align: center;
+}
+
+/* Recipe view */
+.rb-recipe-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 26px;
+}
+.rb-recipe-head {
+  margin-bottom: 8px;
+  padding-bottom: 22px;
+  border-bottom: 2.5px solid var(--ink);
+}
+.rb-recipe-title {
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  line-height: 1.1;
+}
+.rb-recipe-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+/* Markdown body */
+.rb-md {
+  margin-top: 30px;
+}
+.rb-h {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.rb-h2 {
+  font-size: 15px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  margin: 38px 0 14px;
+  padding-bottom: 7px;
+  border-bottom: 1.5px solid var(--line);
+}
+.rb-h3 {
+  font-size: 19px;
+  margin: 24px 0 10px;
+  color: var(--ink);
+}
+.rb-h4 {
+  font-size: 16px;
+  margin: 18px 0 8px;
+  color: var(--ink-soft);
+}
+.rb-p {
+  margin: 12px 0;
+}
+.rb-list {
+  margin: 12px 0;
+  padding-left: 22px;
+}
+.rb-list li {
+  margin: 6px 0;
+}
+.rb-list li::marker {
+  color: var(--accent);
+}
+.rb-hr {
+  border: none;
+  border-top: 1.5px dashed var(--line);
+  margin: 26px 0;
+}
+.rb-code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--paper-2);
+  padding: 1px 5px;
+  border-radius: 2px;
+  border: 1px solid var(--line);
+}
+.rb-blockquote {
+  margin: 16px 0;
+  padding: 4px 16px;
+  border-left: 3px solid var(--accent);
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* Tables render as field-cards — the signature element */
+.rb-table-wrap {
+  margin: 18px 0;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  overflow-x: auto;
+}
+.rb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.rb-table th {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: left;
+  padding: 10px 13px;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 500;
+}
+.rb-table td {
+  padding: 11px 13px;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+}
+.rb-table tr:nth-child(even) td {
+  background: var(--paper-2);
+}
+
+/* Editor */
+.rb-field {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.rb-field-row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.rb-field-row .rb-field {
+  flex: 1;
+  min-width: 220px;
+}
+.rb-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+  margin-bottom: 7px;
+}
+.rb-label-hint {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--line);
+}
+.rb-input {
+  font-family: var(--serif);
+  font-size: 17px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  background: var(--paper-2);
+  color: var(--ink);
+  border-radius: 2px;
+}
+.rb-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.rb-seg {
+  display: flex;
+  border: 1.5px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.rb-seg-btn {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 10px 4px;
+  background: var(--paper-2);
+  border: none;
+  border-right: 1px solid var(--line);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.rb-seg-btn:last-child {
+  border-right: none;
+}
+.rb-seg-btn:hover {
+  color: var(--accent);
+}
+.rb-seg-on {
+  background: var(--accent);
+  color: #f4f1e8;
+}
+.rb-seg-on:hover {
+  color: #f4f1e8;
+}
+.rb-textarea {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.65;
+  padding: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--paper-2);
+  color: var(--ink);
+  border-radius: 2px;
+  min-height: 440px;
+  resize: vertical;
+  tab-size: 2;
+}
+.rb-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.rb-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+.rb-error {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--hot);
+  margin-top: 6px;
+}
+
+/* Unlock dialog (modal) */
+.rb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(36, 31, 26, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+.rb-modal {
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  padding: 26px;
+  width: 100%;
+  max-width: 380px;
+}
+.rb-modal-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  margin: 0 0 16px;
+}
+.rb-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* Keyboard focus + reduced motion */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .rb-page-title {
+    font-size: 30px;
+  }
+  .rb-recipe-title {
+    font-size: 30px;
+  }
+  .rb-chiplabel {
+    width: 100%;
   }
 }
