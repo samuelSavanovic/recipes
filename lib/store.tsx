@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react'
 import type { Recipe, RecipeInput } from './types'
@@ -17,6 +18,42 @@ import { idbGetAll, idbPut, idbRemove, idbReplaceAll } from './idb'
 // state. Session token lives in localStorage; a 401 clears it so the UI relocks.
 
 const TOKEN_KEY = 'recipe-edit-token'
+
+// The edit token is external mutable state (localStorage). Reading it via
+// useSyncExternalStore keeps SSR/hydration consistent (server snapshot = null)
+// and re-renders every consumer when the token changes, without a mount effect.
+const tokenListeners = new Set<() => void>()
+
+function readToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeToken(value: string | null): void {
+  try {
+    if (value === null) localStorage.removeItem(TOKEN_KEY)
+    else localStorage.setItem(TOKEN_KEY, value)
+  } catch {
+    /* no localStorage — session just won't persist */
+  }
+  for (const listener of tokenListeners) listener()
+}
+
+function subscribeToken(callback: () => void): () => void {
+  tokenListeners.add(callback)
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', callback) // cross-tab sync
+  }
+  return () => {
+    tokenListeners.delete(callback)
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', callback)
+    }
+  }
+}
 
 type WriteResult =
   | { ok: true; recipe: Recipe }
@@ -47,16 +84,7 @@ function sortByTitle(recipes: Recipe[]): Recipe[] {
 export function RecipesProvider({ children }: { children: ReactNode }) {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState(true)
-  const [token, setToken] = useState<string | null>(null)
-
-  // Restore any saved edit token (client-only; keeps first render === SSR).
-  useEffect(() => {
-    try {
-      setToken(localStorage.getItem(TOKEN_KEY))
-    } catch {
-      /* no localStorage — ignore */
-    }
-  }, [])
+  const token = useSyncExternalStore(subscribeToken, readToken, () => null)
 
   // IDB-first read, then background refresh from the API.
   useEffect(() => {
@@ -93,12 +121,7 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
   }, [token])
 
   const lock = useCallback(() => {
-    setToken(null)
-    try {
-      localStorage.removeItem(TOKEN_KEY)
-    } catch {
-      /* ignore */
-    }
+    writeToken(null)
   }, [])
 
   const unlock = useCallback(async (password: string): Promise<boolean> => {
@@ -110,12 +133,7 @@ export function RecipesProvider({ children }: { children: ReactNode }) {
       })
       if (!res.ok) return false
       const { token: fresh } = (await res.json()) as { token: string }
-      setToken(fresh)
-      try {
-        localStorage.setItem(TOKEN_KEY, fresh)
-      } catch {
-        /* ignore */
-      }
+      writeToken(fresh)
       return true
     } catch {
       return false

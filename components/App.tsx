@@ -1,8 +1,8 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { useRecipes } from '@/lib/store'
+import { useIsClient } from '@/lib/use-is-client'
 import { TopBar } from './TopBar'
 import { ListView } from './ListView'
 import { RecipeView } from './RecipeView'
@@ -15,8 +15,7 @@ import { UnlockDialog } from './UnlockDialog'
 // served for a "/recipe/x" URL doesn't mismatch on the server-rendered markup.
 export default function App() {
   const pathname = usePathname()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const mounted = useIsClient()
 
   return (
     <div className="rb-root">
