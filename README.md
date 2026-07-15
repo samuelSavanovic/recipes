@@ -101,7 +101,12 @@ filtering, the offline read path (IndexedDB hit with the network down), markdown
 
 ## Deploy (Vercel + Turso)
 
-Deploy is documented, not yet executed.
+**Live:** https://recipes-ten-iota.vercel.app — hosted on Vercel with Turso as the DB.
+The Vercel project is connected to this GitHub repo, so **pushes to `main` auto-deploy**
+(production). `prebuild` stamps the service worker during the Vercel build, so each deploy
+invalidates old SW caches.
+
+To reproduce from scratch:
 
 1. **Turso**: create a database and get its URL + auth token.
    ```bash
@@ -109,11 +114,11 @@ Deploy is documented, not yet executed.
    turso db show recipe-book --url        # → TURSO_DATABASE_URL
    turso db tokens create recipe-book     # → TURSO_AUTH_TOKEN
    ```
-2. **Schema + data** against Turso: set `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` in
-   `.env.local`, then `npm run db:setup` and `npm run db:import`.
-3. **Vercel**: import the repo and set env vars **TURSO_DATABASE_URL**, **TURSO_AUTH_TOKEN**,
-   **EDIT_PASSWORD**, **SESSION_SECRET**. Deploy. `prebuild` stamps the SW during the Vercel
-   build; redeploys automatically invalidate old SW caches.
+2. **Schema + data** against Turso: set `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` in the
+   environment, then `npm run db:setup` and `npm run db:import`.
+3. **Vercel**: set the four env vars — **TURSO_DATABASE_URL**, **TURSO_AUTH_TOKEN**,
+   **EDIT_PASSWORD**, **SESSION_SECRET** — in the project (Production), then deploy
+   (`vercel deploy --prod`, or push to `main` once the repo is connected).
 
 ## Non-goals
 
