@@ -221,8 +221,10 @@ describe('globals.css token drift', () => {
   // A token defined in light but missing from dark silently keeps its light
   // value at night — the exact bug --ink-faint was introduced to fix.
   it('overrides every light colour token in dark mode', () => {
+    // Font stacks and the fluid font-size scale (--fs-*) aren't colours, so
+    // they're intentionally not re-declared in the dark block.
     const colourTokens = Object.keys(light).filter(
-      (t) => !['--mono', '--serif'].includes(t),
+      (t) => !['--mono', '--serif'].includes(t) && !t.startsWith('--fs-'),
     )
     expect(Object.keys(forcedDark).sort()).toEqual(colourTokens.sort())
   })

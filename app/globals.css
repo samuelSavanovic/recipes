@@ -699,3 +699,33 @@ body {
     width: 100%;
   }
 }
+
+@media (pointer: coarse) {
+  /* WCAG 2.5.5 / Apple HIG: 44px min touch target on finger-driven devices.
+     Desktop (fine pointer) keeps the compact sizes above. min-height alone
+     leaves labels top-aligned on inline-block controls, so also center via
+     flex. */
+  .rb-btn,
+  .rb-seg-btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rb-chip,
+  .rb-minibtn {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rb-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .rb-search {
+    min-height: 44px;
+  }
+}
