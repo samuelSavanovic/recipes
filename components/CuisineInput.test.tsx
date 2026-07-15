@@ -109,7 +109,7 @@ describe('CuisineInput', () => {
     expect(prevented).toBe(false)
   })
 
-  it('biases suggestions toward cuisines already in the DB, ahead of seed-only ones', async () => {
+  it('biases suggestions toward cuisines already used, ahead of seed-only ones', async () => {
     await idbReplaceAll([cacio])
     renderHarness()
 
@@ -118,14 +118,40 @@ describe('CuisineInput', () => {
     fireEvent.change(input, { target: { value: 'I' } })
     await screen.findByRole('option', { name: 'Italian' })
 
-    // Italian (in the DB) must come before Indian (seed-only) even though
-    // "Indian" sorts first alphabetically.
+    // Italian (used once) must come before Indian (used zero times) even
+    // though "Indian" sorts first alphabetically.
     const options = screen.getAllByRole('option')
     expect(options.map((o) => o.textContent)).toEqual(['Italian', 'Indian'])
 
-    // ...and a plain Enter (no ArrowDown needed) commits the DB-backed match.
+    // ...and a plain Enter (no ArrowDown needed) commits the more-used match.
     fireEvent.keyDown(input, { key: 'Enter' })
     await waitFor(() => expect(input.value).toBe('Italian'))
+  })
+
+  it('ranks a more-frequently-used cuisine above a less-used one', async () => {
+    const curry: Recipe = {
+      ...cacio,
+      id: 'chana-masala',
+      title: 'Chana masala',
+      cuisine: 'Indian',
+    }
+    const dal: Recipe = { ...cacio, id: 'dal-tadka', title: 'Dal tadka', cuisine: 'Indian' }
+    // Two Indian recipes outnumber the one Italian recipe (cacio).
+    await idbReplaceAll([cacio, curry, dal])
+    renderHarness()
+
+    const input = (await screen.findByRole('combobox')) as HTMLInputElement
+    fireEvent.focus(input)
+    fireEvent.change(input, { target: { value: 'I' } })
+    await screen.findByRole('option', { name: 'Indian' })
+
+    // Frequency wins over the old alphabetical-only order: Indian (2 recipes)
+    // ranks above Italian (1 recipe).
+    const options = screen.getAllByRole('option')
+    expect(options.map((o) => o.textContent)).toEqual(['Indian', 'Italian'])
+
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() => expect(input.value).toBe('Indian'))
   })
 
   it('commits the highlighted match on ArrowDown + Enter', async () => {
