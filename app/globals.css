@@ -1,21 +1,91 @@
 /* Cook's procedure-card design system, ported verbatim from the approved
    prototype (RecipeBook.jsx). Tokens live on :root; the base look sits on
    <body>; component classes keep their rb- prefix. This is a bespoke warm-paper
-   aesthetic — deliberately no dark mode. */
+   aesthetic; dark mode is the same warm axis after sunset (a dark board, not a
+   terminal) — never a neutral-grey inversion.
+
+   EVERY colour belongs to a token below. Component rules must not contain a
+   literal colour: several tokens *invert* between modes (--on-accent, and
+   --accent-hover, which darkens in light but must lighten in dark), so a
+   hardcoded hex is a latent dark-mode contrast bug, not a style nit.
+
+   Theme resolution — the base :root block is light; the two blocks below it
+   both set the identical dark token list:
+     @media (prefers-color-scheme: dark) :root:not([data-theme='light'])
+       → OS dark, and the user hasn't forced light
+     :root[data-theme='dark']
+       → user forced dark, whatever the OS says
+   data-theme holds the *preference* and is absent for 'system' (see lib/theme.ts
+   — it's stamped on <html> pre-paint by the bootstrap script in app/layout.tsx).
+   Both selectors are specificity (0,2,0) — :not() takes its argument's — so they
+   cannot conflict; the plain :root light block at (0,1,0) correctly loses to
+   both. */
 
 :root {
   --paper: #efe9dd;
   --paper-2: #e7dfcf;
   --ink: #241f1a;
   --ink-soft: #5c5346;
+  --ink-faint: #c9bda6; /* deliberately faint hint text — not body copy */
   --line: #c9bda6;
   --accent: #3a5a45; /* deep herb green — not terracotta, not cream-serif */
   --accent-soft: #dfe6dc;
+  --accent-hover: #2c4636;
+  --accent-line: #bcc9bc;
+  --on-accent: #f4f1e8; /* text/icons sitting *on* an --accent fill */
   --hot: #a2432b; /* paprika, used sparingly */
+  --overlay: rgba(36, 31, 26, 0.55);
+  --th-bg: var(--ink); /* table header — the signature "inked" block */
+  --th-fg: var(--paper);
   --mono: 'SFMono-Regular', ui-monospace, 'JetBrains Mono', Menlo, Consolas,
     monospace;
   --serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino,
     Georgia, serif;
+  /* Native controls (the editor textarea's scrollbar + caret, form widgets)
+     follow this, not our tokens. */
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #16130f;
+    --paper-2: #201c16;
+    --ink: #e8e1d4;
+    --ink-soft: #a89e8d;
+    --ink-faint: #5c5344;
+    --line: #3a342b;
+    --accent: #8fb39a; /* the herb green, lifted to read on a dark board */
+    --accent-soft: #232e26;
+    --accent-hover: #a3c4ad; /* lightens, where light mode darkens */
+    --accent-line: #36483c;
+    --on-accent: #12211a; /* flips: --accent is now the light surface */
+    --hot: #c9705a;
+    --overlay: rgba(0, 0, 0, 0.66);
+    /* Not --ink here: a full-width #e8e1d4 bar is the one large filled area in
+       the UI, i.e. exactly the glare dark mode exists to prevent. */
+    --th-bg: var(--accent-soft);
+    --th-fg: var(--accent);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #16130f;
+  --paper-2: #201c16;
+  --ink: #e8e1d4;
+  --ink-soft: #a89e8d;
+  --ink-faint: #5c5344;
+  --line: #3a342b;
+  --accent: #8fb39a;
+  --accent-soft: #232e26;
+  --accent-hover: #a3c4ad;
+  --accent-line: #36483c;
+  --on-accent: #12211a;
+  --hot: #c9705a;
+  --overlay: rgba(0, 0, 0, 0.66);
+  --th-bg: var(--accent-soft);
+  --th-fg: var(--accent);
+  color-scheme: dark;
 }
 
 * {
@@ -78,6 +148,13 @@ body {
   color: var(--ink-soft);
 }
 
+/* Right-hand topbar affordances: theme toggle + unlock/new. */
+.rb-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .rb-main {
   max-width: 760px;
   margin: 0 auto;
@@ -106,11 +183,11 @@ body {
 .rb-btn-primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #f4f1e8;
+  color: var(--on-accent);
 }
 .rb-btn-primary:hover {
-  background: #2c4636;
-  border-color: #2c4636;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 .rb-btn-primary:disabled {
   opacity: 0.4;
@@ -137,8 +214,9 @@ body {
 .rb-link:hover {
   color: var(--accent);
 }
-/* Small mono "edit" affordance in the topbar (unlock trigger) */
-.rb-unlock {
+/* Small quiet mono affordance in the topbar — the unlock trigger and the theme
+   toggle. Shared so the two sit at identical visual weight. */
+.rb-minibtn {
   background: none;
   border: none;
   font-family: var(--mono);
@@ -149,7 +227,7 @@ body {
   cursor: pointer;
   padding: 6px 4px;
 }
-.rb-unlock:hover {
+.rb-minibtn:hover {
   color: var(--accent);
 }
 
@@ -225,10 +303,10 @@ body {
 .rb-chip-on {
   background: var(--accent);
   border-color: var(--accent);
-  color: #f4f1e8;
+  color: var(--on-accent);
 }
 .rb-chip-on:hover {
-  color: #f4f1e8;
+  color: var(--on-accent);
 }
 
 /* Cards */
@@ -288,7 +366,7 @@ body {
 }
 .rb-tag-time {
   background: var(--accent-soft);
-  border-color: #bcc9bc;
+  border-color: var(--accent-line);
   color: var(--accent);
 }
 /* Main ingredients can be a longer phrase — let it wrap in the meta line. */
@@ -412,8 +490,8 @@ body {
   letter-spacing: 0.1em;
   text-align: left;
   padding: 10px 13px;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--th-bg);
+  color: var(--th-fg);
   font-weight: 500;
 }
 .rb-table td {
@@ -451,7 +529,9 @@ body {
 .rb-label-hint {
   text-transform: none;
   letter-spacing: 0;
-  color: var(--line);
+  /* --ink-faint, not --line: --line is a hairline token that goes near-black in
+     dark mode, which made this hint invisible (1.50:1). */
+  color: var(--ink-faint);
 }
 .rb-input {
   font-family: var(--serif);
@@ -492,10 +572,10 @@ body {
 }
 .rb-seg-on {
   background: var(--accent);
-  color: #f4f1e8;
+  color: var(--on-accent);
 }
 .rb-seg-on:hover {
-  color: #f4f1e8;
+  color: var(--on-accent);
 }
 .rb-textarea {
   font-family: var(--mono);
@@ -531,7 +611,7 @@ body {
 .rb-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(36, 31, 26, 0.55);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
