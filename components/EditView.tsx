@@ -39,7 +39,9 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
   const [cookTime, setCookTime] = useState<CookTime>(recipe?.cook_time ?? '15_30')
   const [body, setBody] = useState(recipe?.body_md ?? '')
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+  // Which write is in flight, if any — drives the per-button loading indicator.
+  const [pending, setPending] = useState<'save' | 'delete' | null>(null)
+  const busy = pending !== null
 
   const canSave = title.trim().length > 0 && !busy
 
@@ -49,7 +51,7 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
 
   async function save() {
     if (!canSave) return
-    setBusy(true)
+    setPending('save')
     setError('')
     const input = {
       title: title.trim(),
@@ -61,13 +63,13 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
     const res = recipe
       ? await updateRecipe(recipe.id, input)
       : await createRecipe(input)
-    setBusy(false)
 
     if (res.ok) {
-      router.push(`/recipe/${res.recipe.id}`)
+      router.push(`/recipe/${res.recipe.id}`) // keep spinner until navigation
     } else if (res.status === 401) {
       router.push('/') // session expired — relocked
     } else {
+      setPending(null)
       const detail = res.fields ? Object.values(res.fields).join(' ') : ''
       setError(`Could not save. ${detail}`.trim())
     }
@@ -76,13 +78,13 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
   async function remove() {
     if (!recipe) return
     if (!window.confirm(`Delete “${recipe.title}”? This cannot be undone.`)) return
-    setBusy(true)
+    setPending('delete')
     setError('')
     const res = await deleteRecipe(recipe.id)
-    setBusy(false)
     if (res.ok || res.status === 401) {
-      router.push('/')
+      router.push('/') // keep spinner until navigation
     } else {
+      setPending(null)
       setError('Could not delete.')
     }
   }
@@ -95,7 +97,14 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
         </button>
         {recipe && (
           <button className="rb-btn rb-btn-danger" onClick={remove} disabled={busy}>
-            Delete
+            {pending === 'delete' ? (
+              <>
+                <span className="rb-spinner" aria-hidden="true" />
+                Deleting…
+              </>
+            ) : (
+              'Delete'
+            )}
           </button>
         )}
       </div>
@@ -182,7 +191,14 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
           onClick={save}
           disabled={!canSave}
         >
-          Save recipe
+          {pending === 'save' ? (
+            <>
+              <span className="rb-spinner" aria-hidden="true" />
+              Saving…
+            </>
+          ) : (
+            'Save recipe'
+          )}
         </button>
       </div>
     </main>

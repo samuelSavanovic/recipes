@@ -215,6 +215,31 @@ body {
   background: var(--hot);
   color: var(--paper);
 }
+.rb-btn:disabled {
+  cursor: not-allowed;
+}
+/* Inline loading spinner for in-flight writes (save/delete). */
+.rb-spinner {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-right: 0.5em;
+  vertical-align: -0.1em;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: rb-spin 0.6s linear infinite;
+}
+@keyframes rb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rb-spinner {
+    animation-duration: 1.6s;
+  }
+}
 .rb-link {
   background: none;
   border: none;
