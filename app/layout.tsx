@@ -1,11 +1,19 @@
 import type { Metadata, Viewport } from 'next'
+import { Source_Serif_4 } from 'next/font/google'
 import './globals.css'
 import { RecipesProvider } from '@/lib/store'
 import { RegisterSW } from '@/components/RegisterSW'
 import { THEME_BOOTSTRAP_SCRIPT, THEME_COLOR } from '@/lib/theme'
 
-// Fonts are the prototype's system serif/mono stacks (see globals.css) — no web
-// font loading, keeping first paint instant.
+// The mono stack stays a system stack (see globals.css). The serif is
+// Source Serif 4, self-hosted by next/font/google: downloaded at build time and
+// served from our own /_next/static/media/ origin — no runtime request to
+// Google. The service worker caches the woff2 at runtime for offline use.
+const sourceSerif = Source_Serif_4({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-source-serif',
+})
 
 export const metadata: Metadata = {
   title: {
@@ -55,7 +63,7 @@ export default function RootLayout({
     // <html> before React hydrates, which React would otherwise report as a
     // server/client mismatch. It's element-local, so it does not mask anything
     // in the tree underneath.
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={sourceSerif.variable} suppressHydrationWarning>
       {/* This <head> must stay explicit. React does not hoist inline scripts
           (only <script src async>), and with no <head> of our own it synthesises
           an empty one and emits this script into <body> — where paint can begin

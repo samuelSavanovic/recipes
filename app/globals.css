@@ -39,8 +39,7 @@
   --th-fg: var(--paper);
   --mono: 'SFMono-Regular', ui-monospace, 'JetBrains Mono', Menlo, Consolas,
     monospace;
-  --serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino,
-    Georgia, serif;
+  --serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   /* Native controls (the editor textarea's scrollbar + caret, form widgets)
      follow this, not our tokens. */
   color-scheme: light;

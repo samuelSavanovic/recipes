@@ -7,6 +7,13 @@
 const VERSION = '__SW_VERSION__'
 const CACHE = `recipes-${VERSION}`
 
+// Deliberately unversioned. next/font hashes the woff2 filename, so a new build
+// yields a new URL — the cache contents self-invalidate without the cache name
+// rotating. Keeping it out of the version stamp means the font survives every
+// deploy instead of being re-downloaded (see the activate cleanup, which skips
+// it, and the fetch branch that fills it).
+const FONT_CACHE = 'fonts'
+
 // Precached on install: the URL-agnostic app shell, the manifest, and icons.
 const PRECACHE = [
   '/',
@@ -33,7 +40,9 @@ self.addEventListener('activate', (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((k) => k.startsWith('recipes-') && k !== CACHE)
+            .filter(
+              (k) => k !== CACHE && k !== FONT_CACHE && k.startsWith('recipes-'),
+            )
             .map((k) => caches.delete(k)),
         ),
       )
@@ -58,6 +67,19 @@ async function networkFirst(request) {
 // Cache-first: for content-hashed/immutable assets.
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE)
+  const cached = await cache.match(request)
+  if (cached) return cached
+  const res = await fetch(request)
+  if (res && res.ok) cache.put(request, res.clone())
+  return res
+}
+
+// Cache-first into the unversioned FONT_CACHE. Same as cacheFirst above but
+// targets the deploy-surviving cache. On a miss we fetch and only store an ok
+// response; if the network fails with nothing cached, the fetch rejects and the
+// --serif CSS fallback (Georgia) takes over.
+async function fontCacheFirst(request) {
+  const cache = await caches.open(FONT_CACHE)
   const cached = await cache.match(request)
   if (cached) return cached
   const res = await fetch(request)
@@ -96,6 +118,18 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(navigate(request))
+    return
+  }
+
+  // Self-hosted font files (next/font → /_next/static/media/*.woff2). Served
+  // cache-first from the unversioned FONT_CACHE so they persist across deploys.
+  // Must precede the /_next/static/ branch below, which would otherwise route
+  // them into the versioned cache that rotates on every redeploy.
+  if (
+    url.pathname.startsWith('/_next/static/media/') &&
+    (url.pathname.endsWith('.woff2') || url.pathname.endsWith('.woff'))
+  ) {
+    event.respondWith(fontCacheFirst(request))
     return
   }
 
