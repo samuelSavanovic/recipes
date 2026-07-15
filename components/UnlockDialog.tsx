@@ -50,7 +50,6 @@ export function UnlockDialog({
           <h2 className="rb-modal-title">Unlock editing</h2>
           <input
             className="rb-input"
-            style={{ width: '100%' }}
             type="password"
             autoFocus
             value={password}

@@ -42,3 +42,12 @@ export function isCookTime(value: unknown): value is CookTime {
 export function cookTimeLabel(id: CookTime): string {
   return COOK_TIMES.find((b) => b.id === id)?.label ?? '—'
 }
+
+// Seed suggestions for the cuisine autocomplete (components/CuisineInput.tsx).
+// Cuisine itself stays free text — this just gives the field something to
+// suggest before any matching recipe exists.
+export const COMMON_CUISINES: readonly string[] = [
+  'Italian', 'French', 'Spanish', 'Greek', 'Mexican', 'American',
+  'Chinese', 'Japanese', 'Thai', 'Indian', 'Korean', 'Vietnamese',
+  'Mediterranean', 'Middle Eastern', 'Croatian', 'General',
+]

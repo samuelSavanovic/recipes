@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useRecipes } from '@/lib/store'
 import { COOK_TIMES, type CookTime, type Recipe } from '@/lib/types'
+import { CuisineInput } from './CuisineInput'
 
 // Editor for new + existing recipes. Writes are online-only and go through the
 // store (which patches IndexedDB + state on success). The slug is server-owned
@@ -127,13 +128,7 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
           <label className="rb-label" htmlFor="rb-cuisine">
             Cuisine
           </label>
-          <input
-            id="rb-cuisine"
-            className="rb-input"
-            value={cuisine}
-            onChange={(e) => setCuisine(e.target.value)}
-            placeholder="Italian"
-          />
+          <CuisineInput id="rb-cuisine" value={cuisine} onChange={setCuisine} />
         </div>
         <div className="rb-field">
           <label className="rb-label" htmlFor="rb-main">

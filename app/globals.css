@@ -573,6 +573,7 @@ body {
   color: var(--ink-faint);
 }
 .rb-input {
+  width: 100%;
   font-family: var(--serif);
   font-size: var(--fs-body);
   padding: 10px 12px;
@@ -584,6 +585,36 @@ body {
 .rb-input:focus {
   outline: none;
   border-color: var(--accent);
+}
+.rb-combobox {
+  position: relative;
+}
+.rb-combo-list {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--paper-2);
+  border: 1.5px solid var(--line);
+  border-radius: 2px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+.rb-combo-opt {
+  font-family: var(--serif);
+  font-size: var(--fs-body);
+  padding: 8px 12px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.rb-combo-opt-on {
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .rb-seg {
   display: flex;
@@ -727,5 +758,10 @@ body {
   }
   .rb-search {
     min-height: 44px;
+  }
+  .rb-combo-opt {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 }
