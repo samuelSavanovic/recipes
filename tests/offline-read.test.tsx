@@ -88,8 +88,9 @@ describe('offline read path', () => {
       await screen.findByRole('heading', { level: 1, name: 'Cacio e pepe' }),
     ).toBeInTheDocument()
     expect(screen.getByText('← the book')).toBeInTheDocument()
-    // Body markdown + main render too.
-    expect(screen.getByText('Pecorino Romano, Pepper')).toBeInTheDocument()
+    // Body markdown + main (rendered as separate badges) render too.
+    expect(screen.getByText('Pecorino Romano')).toBeInTheDocument()
+    expect(screen.getByText('Pepper')).toBeInTheDocument()
     expect(screen.getByText('Ingredients')).toBeInTheDocument()
   })
 })

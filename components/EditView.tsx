@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useRecipes } from '@/lib/store'
 import { COOK_TIMES, type CookTime, type Recipe } from '@/lib/types'
 import { CuisineInput } from './CuisineInput'
+import { MainIngredientsInput } from './MainIngredientsInput'
 
 // Editor for new + existing recipes. Writes are online-only and go through the
 // store (which patches IndexedDB + state on success). The slug is server-owned
@@ -134,13 +135,7 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
           <label className="rb-label" htmlFor="rb-main">
             Main ingredients
           </label>
-          <input
-            id="rb-main"
-            className="rb-input"
-            value={main}
-            onChange={(e) => setMain(e.target.value)}
-            placeholder="Olive oil, Garlic"
-          />
+          <MainIngredientsInput id="rb-main" value={main} onChange={setMain} />
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { cookTimeLabel, type Recipe } from '@/lib/types'
+import { parseMainIngredients } from '@/lib/mainIngredients'
 import { RecipeMarkdown } from './RecipeMarkdown'
 import { RecipeActions } from './RecipeActions'
 
@@ -6,6 +7,7 @@ import { RecipeActions } from './RecipeActions'
 // recipe page (online) and the client shell (offline). Title/meta/markdown are
 // identical either way; only the nav actions are a client island.
 export function RecipeArticle({ recipe }: { recipe: Recipe }) {
+  const mainIngredients = parseMainIngredients(recipe.main)
   return (
     <main className="rb-main rb-recipe">
       <RecipeActions slug={recipe.id} />
@@ -16,7 +18,11 @@ export function RecipeArticle({ recipe }: { recipe: Recipe }) {
           <span className="rb-tag rb-tag-time">
             {cookTimeLabel(recipe.cook_time)}
           </span>
-          {recipe.main && <span className="rb-tag rb-tag-main">{recipe.main}</span>}
+          {mainIngredients.map((ing) => (
+            <span key={ing} className="rb-tag rb-tag-main">
+              {ing}
+            </span>
+          ))}
         </div>
       </div>
       <article className="rb-recipe-body">

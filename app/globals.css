@@ -616,6 +616,68 @@ body {
   background: var(--accent);
   color: var(--on-accent);
 }
+.rb-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 42px;
+  padding: 6px 8px;
+  border: 1.5px solid var(--line);
+  background: var(--paper-2);
+  border-radius: 2px;
+  cursor: text;
+}
+.rb-badges:focus-within {
+  border-color: var(--accent);
+}
+.rb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: var(--fs-mono-xs);
+  padding: 3px 3px 3px 10px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.rb-badge-remove {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 99px;
+}
+.rb-badge-remove:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.rb-badge-text {
+  flex: 1 1 100px;
+  min-width: 100px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--serif);
+  font-size: var(--fs-body);
+  color: var(--ink);
+  padding: 3px 2px;
+}
+.rb-badge-text:focus-visible {
+  /* Higher specificity than the global :focus-visible rule below, which
+     would otherwise draw its own ring on top of .rb-badges' focus-within
+     border — the double-outline this rule exists to prevent. Focus is
+     already indicated by the outer container's border-color change. */
+  outline: none;
+}
 .rb-seg {
   display: flex;
   border: 1.5px solid var(--line);
@@ -744,7 +806,8 @@ body {
     justify-content: center;
   }
   .rb-chip,
-  .rb-minibtn {
+  .rb-minibtn,
+  .rb-badge-remove {
     min-height: 44px;
     min-width: 44px;
     display: inline-flex;

@@ -56,12 +56,11 @@ describe('main ingredients in the UI', () => {
       </RecipesProvider>,
     )
 
-    expect(
-      await screen.findByText('Pecorino Romano, Pepper'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Pecorino Romano')).toBeInTheDocument()
+    expect(screen.getByText('Pepper')).toBeInTheDocument()
   })
 
-  it('prefills the main input and sends the edited value in the save payload', async () => {
+  it('prefills main as badges and sends the edited value in the save payload', async () => {
     const putBodies: Array<Record<string, unknown>> = []
     vi.stubGlobal(
       'fetch',
@@ -88,17 +87,21 @@ describe('main ingredients in the UI', () => {
       </RecipesProvider>,
     )
 
-    // The editor loads the recipe from the store and prefills the main input.
-    const mainInput = (await screen.findByLabelText(
-      'Main ingredients',
-    )) as HTMLInputElement
-    expect(mainInput.value).toBe('Pecorino Romano, Pepper')
+    // The editor loads the recipe from the store and prefills main as badges.
+    expect(await screen.findByText('Pecorino Romano')).toBeInTheDocument()
+    expect(screen.getByText('Pepper')).toBeInTheDocument()
 
-    fireEvent.change(mainInput, { target: { value: 'Pecorino, Black Pepper' } })
+    // Swap "Pepper" for "Black Pepper": remove its badge, type the
+    // replacement, and commit it with Enter.
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Pepper' }))
+    const mainInput = screen.getByLabelText('Main ingredients') as HTMLInputElement
+    fireEvent.change(mainInput, { target: { value: 'Black Pepper' } })
+    fireEvent.keyDown(mainInput, { key: 'Enter' })
+
     fireEvent.click(screen.getByText('Save recipe'))
 
     await waitFor(() => expect(putBodies.length).toBe(1))
-    expect(putBodies[0].main).toBe('Pecorino, Black Pepper')
+    expect(putBodies[0].main).toBe('Pecorino Romano, Black Pepper')
     // Navigates to the saved recipe afterward.
     await waitFor(() => expect(push).toHaveBeenCalledWith('/recipe/cacio-e-pepe'))
   })
