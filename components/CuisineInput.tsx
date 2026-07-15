@@ -9,7 +9,9 @@ const MAX_SUGGESTIONS = 8
 
 // Free-text cuisine input with type-ahead suggestions. Suggestions come from a
 // curated seed list merged with cuisines already used in your recipes, so
-// "type I -> Italian" works even before any Italian recipe exists. The field
+// "type I -> Italian" works even before any Italian recipe exists. Cuisines
+// already in use are sorted ahead of seed-only ones (each group alphabetical),
+// so the most relevant match is what Tab/Enter commits by default. The field
 // stays free text: nothing here rejects or rewrites an unmatched value.
 export function CuisineInput({
   id,
@@ -26,8 +28,15 @@ export function CuisineInput({
   const listId = `${id}-listbox`
 
   const pool = useMemo(() => {
-    const merged = new Set([...COMMON_CUISINES, ...distinctCuisines(recipes)])
-    return [...merged].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+    const dbCuisines = distinctCuisines(recipes)
+    const inDb = new Set(dbCuisines.map((c) => c.toLowerCase()))
+    const merged = new Set([...COMMON_CUISINES, ...dbCuisines])
+    return [...merged].sort((a, b) => {
+      const aInDb = inDb.has(a.toLowerCase())
+      const bInDb = inDb.has(b.toLowerCase())
+      if (aInDb !== bInDb) return aInDb ? -1 : 1 // cuisines already in use come first
+      return a.localeCompare(b, undefined, { sensitivity: 'base' })
+    })
   }, [recipes])
 
   const matches = useMemo(() => {

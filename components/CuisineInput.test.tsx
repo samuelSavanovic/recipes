@@ -109,6 +109,25 @@ describe('CuisineInput', () => {
     expect(prevented).toBe(false)
   })
 
+  it('biases suggestions toward cuisines already in the DB, ahead of seed-only ones', async () => {
+    await idbReplaceAll([cacio])
+    renderHarness()
+
+    const input = (await screen.findByRole('combobox')) as HTMLInputElement
+    fireEvent.focus(input)
+    fireEvent.change(input, { target: { value: 'I' } })
+    await screen.findByRole('option', { name: 'Italian' })
+
+    // Italian (in the DB) must come before Indian (seed-only) even though
+    // "Indian" sorts first alphabetically.
+    const options = screen.getAllByRole('option')
+    expect(options.map((o) => o.textContent)).toEqual(['Italian', 'Indian'])
+
+    // ...and a plain Enter (no ArrowDown needed) commits the DB-backed match.
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() => expect(input.value).toBe('Italian'))
+  })
+
   it('commits the highlighted match on ArrowDown + Enter', async () => {
     await idbReplaceAll([cacio])
     renderHarness()
@@ -118,10 +137,11 @@ describe('CuisineInput', () => {
     fireEvent.change(input, { target: { value: 'I' } })
     await screen.findByRole('option', { name: 'Italian' })
 
+    // Italian is first (DB-biased); ArrowDown moves to the next option, Indian.
     fireEvent.keyDown(input, { key: 'ArrowDown' })
     fireEvent.keyDown(input, { key: 'Enter' })
 
-    await waitFor(() => expect(input.value).toBe('Italian'))
+    await waitFor(() => expect(input.value).toBe('Indian'))
   })
 
   it('preserves a novel cuisine typed by hand', async () => {
