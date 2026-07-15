@@ -1,0 +1,7 @@
+notion_export/
+local.db
+local.db-shm
+local.db-wal
+.env.local
+RecipeBook.jsx
+HANDOFF.md
