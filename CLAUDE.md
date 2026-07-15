@@ -1,21 +1,24 @@
-# CLAUDE.md — Recipe Book
+# CLAUDE.md — Recipe Book (mise)
 
-Conventions for working in this repo. `HANDOFF.md` is the build spec (what to build);
-this file is how to build it. When the two conflict, ask.
+How to work in this repo. It's a **built and deployed** personal recipe PWA: Next.js App Router
++ TypeScript, Turso/libSQL, an IndexedDB offline read cache, and a hand-written service worker.
+See `README.md` for architecture, local setup, and deployment. The app **auto-deploys to Vercel
+on push to `main`**.
 
 ## Working style
 
-- **Plan first.** Present a plan and get approval before implementing. No large multi-file
-  changes without a plan-gate. This is non-negotiable for this repo.
-- **Surface findings, don't suppress them.** If you notice a bug, a risk, a bad assumption in
-  the spec, or a place where the requested approach will bite later — say so, plainly, before
-  proceeding. Don't quietly "fix" things by reinterpreting the request, and don't bury caveats.
-  A surfaced concern I decide to ignore is fine; a suppressed one is not.
-- **Direct and opinionated.** If there's a clearly better approach, argue for it. Don't hedge
-  or offer five options when you have a view. I'll push back if I disagree.
-- **No scope creep.** Build what's specified. The non-goals in HANDOFF.md are real (no offline
-  writes, no live preview, no OAuth, no custom markdown parser). Don't add "nice to haves"
-  unprompted — flag them instead and let me decide.
+- **Surface findings, don't suppress them.** If you notice a bug, a risk, a bad assumption, or a
+  place where the requested approach will bite later — say so, plainly, before proceeding. Don't
+  quietly "fix" things by reinterpreting the request, and don't bury caveats. A surfaced concern
+  I decide to ignore is fine; a suppressed one is not.
+- **Direct and opinionated.** If there's a clearly better approach, argue for it. Don't hedge or
+  offer five options when you have a view. I'll push back if I disagree.
+- **Plan non-trivial changes.** For work that touches many files, public APIs, or the
+  service-worker / DB boundary, outline the approach before implementing. Small, reversible edits:
+  just do them.
+- **No scope creep.** The non-goals are real: no offline writes / sync queue / conflict
+  resolution, no live preview in the editor, no per-user accounts / OAuth, no custom markdown
+  parser. Flag "nice to haves" instead of building them.
 
 ## Code principles
 
@@ -25,13 +28,13 @@ this file is how to build it. When the two conflict, ask.
 - **No unnecessary abstraction.** Don't introduce layers, wrappers, or generic machinery for a
   two-editor recipe app. Write the direct version; abstract only when there's real repetition
   with a real reason. YAGNI.
-- **TypeScript: no `any` escape hatches.** Type the data model properly. `cook_time` is a
-  union type (`'under_15' | '15_30' | '30_60' | 'over_60'`), not a loose string — model it as
-  such and let the compiler catch bad values. Prefer `unknown` + narrowing over `any`.
+- **TypeScript: no `any` escape hatches.** Keep the data model typed. `cook_time` is a union
+  (`'under_15' | '15_30' | '30_60' | 'over_60'`), not a loose string — let the compiler catch bad
+  values. Prefer `unknown` + narrowing over `any`.
 - **Keep the markdown source of truth intact.** `body_md` is stored raw and rendered, never
   round-tripped through a transform that could lose formatting. Don't "normalize" it.
-- **Server is the security boundary.** Write endpoints verify the edit token server-side.
-  Never trust the client for auth; hiding UI is not access control. (See HANDOFF.md auth.)
+- **Server is the security boundary.** Write endpoints verify the edit token server-side. Never
+  trust the client for auth; hiding UI is not access control.
 
 ## Testing
 
@@ -48,17 +51,21 @@ this file is how to build it. When the two conflict, ask.
 
 ## Stack-specific
 
-- **Next.js App Router**, TypeScript. Server components for reads where it helps; the offline
-  cache layer is client-side (IndexedDB).
+- **Next.js 16 (App Router)**, TypeScript. Dynamic-route `params` and route-handler context are
+  async — `await params`. Recipe pages are SSR (`export const dynamic = 'force-dynamic'`); the
+  list and offline views are client / IndexedDB-first.
 - **Turso / libSQL** via `@libsql/client`. Parameterized queries only — no string-built SQL.
+  Local dev falls back to `file:local.db` when `TURSO_*` is unset; tests use `:memory:`.
 - **Markdown**: `react-markdown` + `remark-gfm`. HTML escaping stays ON — no `rehype-raw`, no
   `dangerouslySetInnerHTML`.
-- **PWA / service worker** is the fiddliest surface. Be explicit about the caching strategy
-  (app-shell vs API), and about cache invalidation on redeploy — stale-shell-after-deploy is the
-  classic failure. Call out your SW strategy in the plan before writing it.
+- **PWA / service worker** is the fiddliest surface. `sw/sw.js` is hand-written and
+  version-stamped into `public/sw.js` at build (`prebuild`/`predev`). Be explicit about the
+  caching strategy (app-shell vs API) and cache invalidation on redeploy — stale-shell-after-deploy
+  is the classic failure. It registers in production only.
 
 ## Commits
 
 - Small, focused commits with clear messages. One concern per commit.
-- Don't commit secrets. `EDIT_PASSWORD`, `TURSO_AUTH_TOKEN`, signing secret → env vars only,
-  `.env.local` gitignored, `.env.example` committed with placeholder keys.
+- Don't commit secrets. `EDIT_PASSWORD`, `SESSION_SECRET`, `TURSO_AUTH_TOKEN` → env vars only
+  (`.env.local` local, Vercel project for production). `.env.local` is gitignored; `.env.example`
+  is committed with placeholders.
