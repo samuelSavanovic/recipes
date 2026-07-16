@@ -45,20 +45,38 @@ export function ListView() {
 
       <div className={`rb-filters ${searching ? 'rb-filters-searching' : ''}`}>
         <div className="rb-searchrow">
-          <input
-            className="rb-search"
-            placeholder="Search recipes and ingredients…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            aria-label="Search recipes and ingredients"
-            // Filtering is live, so there is nothing to submit — the only job of
-            // the phone keyboard's Go key is to get out of the way. Blur does
-            // that; the query and results stay put.
-            enterKeyHint="search"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') e.currentTarget.blur()
-            }}
-          />
+          <div className="rb-searchfield">
+            <input
+              className="rb-search"
+              placeholder="Search recipes and ingredients…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="Search recipes and ingredients"
+              // Filtering is live, so there is nothing to submit — the only job
+              // of the phone keyboard's Go key is to get out of the way. Blur
+              // does that; the query and results stay put.
+              enterKeyHint="search"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur()
+              }}
+            />
+            {q === '' ? null : (
+              <button
+                type="button"
+                className="rb-search-clear"
+                aria-label="Clear search"
+                // Deliberately does *not* focus the input afterwards: focusing a
+                // text input is what summons the phone keyboard, and clearing is
+                // usually the last thing you do, not a prelude to retyping. For
+                // the same reason there's no onMouseDown preventDefault here —
+                // unlike .rb-badge-remove, which uses one to hold focus in its
+                // editor. Letting the input blur normally is the point.
+                onClick={() => setQ('')}
+              >
+                ×
+              </button>
+            )}
+          </div>
           {/* Live count: the keyboard can still cover the list on a short
               screen, so give an unambiguous signal that typing did something. */}
           <span className="rb-searchcount" role="status" aria-live="polite">

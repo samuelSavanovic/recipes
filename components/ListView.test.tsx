@@ -204,6 +204,46 @@ describe('ListView search', () => {
     expect(document.activeElement).toBe(input)
   })
 
+  it('offers a clear button only when there is something to clear', async () => {
+    const input = await renderList()
+    expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
+
+    fireEvent.change(input, { target: { value: 'chicken' } })
+    expect(screen.getByRole('button', { name: 'Clear search' })).toBeInTheDocument()
+
+    fireEvent.change(input, { target: { value: '' } })
+    expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
+  })
+
+  it('clears the query and restores the full list', async () => {
+    const input = await renderList()
+    fireEvent.change(input, { target: { value: 'chicken' } })
+    expect(cardTitles()).toEqual(['Chicken Stock', 'Adobo', 'Katsu Curry'])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+
+    expect(input.value).toBe('')
+    expect(cardTitles()).toEqual(['Adobo', 'Carbonara', 'Chicken Stock', 'Katsu Curry'])
+    // Clearing exits the searching state, so the collapsed chrome comes back.
+    expect(screen.getByRole('heading', { name: 'The book' })).toBeInTheDocument()
+    expect(chipRow('cuisine')).not.toBeNull()
+  })
+
+  it('does not refocus the input when cleared, so the keyboard stays down', async () => {
+    const input = await renderList()
+    input.focus()
+    fireEvent.change(input, { target: { value: 'chicken' } })
+    // Press Go: the keyboard is now dismissed and the input is blurred.
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(document.activeElement).not.toBe(input)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+
+    // Refocusing here would summon the keyboard again for no reason.
+    expect(input.value).toBe('')
+    expect(document.activeElement).not.toBe(input)
+  })
+
   it('hides the page header while searching to make room for results', async () => {
     const input = await renderList()
     expect(screen.getByRole('heading', { name: 'The book' })).toBeInTheDocument()
