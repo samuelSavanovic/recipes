@@ -296,6 +296,33 @@ body {
   padding-bottom: 22px;
   border-bottom: 1.5px solid var(--line);
 }
+
+/* While searching, pin the search box to the top so it survives scrolling the
+   results with the keyboard up. `position: sticky` never leaves the flow, so
+   toggling this on causes no reflow — it only changes behaviour once scrolled. */
+.rb-filters-searching {
+  position: sticky;
+  top: 0;
+  z-index: 9;
+  background: var(--paper);
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+}
+
+/* ...and unpin the topbar for the duration. Two stacked sticky bars would cost
+   ~125px of the ~350px a phone has left with the keyboard open, which defeats
+   the point. The topbar is a sibling of the list, so `:has()` lets the CSS read
+   the search state directly rather than threading a `searching` flag through a
+   context purely to toggle a class. */
+.rb-root:has(.rb-filters-searching) .rb-topbar {
+  position: static;
+}
+
+.rb-searchrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .rb-search {
   font-family: var(--mono);
   font-size: var(--fs-mono);
@@ -309,6 +336,15 @@ body {
 .rb-search:focus {
   outline: none;
   border-color: var(--accent);
+}
+.rb-searchcount {
+  font-family: var(--mono);
+  font-size: var(--fs-mono-xs);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.rb-searchcount:empty {
+  display: none;
 }
 .rb-chiprow {
   display: flex;
@@ -790,6 +826,16 @@ body {
      covers the title sizes this block used to override. */
   .rb-chiplabel {
     width: 100%;
+  }
+
+  /* Stack the card instead of setting the title against the tags. Side by side,
+     the two nowrap tags hold ~330px of a ~360px screen, squeezing the title into
+     a column so narrow it wrapped to four lines — ~300px per card, so barely two
+     results cleared the keyboard. Full-width titles run to one or two lines. */
+  .rb-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
 
