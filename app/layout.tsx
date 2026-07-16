@@ -3,6 +3,7 @@ import { Source_Serif_4 } from 'next/font/google'
 import './globals.css'
 import { RecipesProvider } from '@/lib/store'
 import { RegisterSW } from '@/components/RegisterSW'
+import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { THEME_BOOTSTRAP_SCRIPT, THEME_COLOR } from '@/lib/theme'
 
 // The mono stack stays a system stack (see globals.css). The serif is
@@ -82,6 +83,7 @@ export default function RootLayout({
       <body>
         <RecipesProvider>{children}</RecipesProvider>
         <RegisterSW />
+        <ScrollTopButton />
       </body>
     </html>
   )
