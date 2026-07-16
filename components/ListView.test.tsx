@@ -65,7 +65,7 @@ async function renderList() {
   // The input renders before the IDB read resolves, so wait on a card instead —
   // otherwise assertions race an empty list.
   await screen.findByRole('link', { name: /Carbonara/ })
-  return screen.getByLabelText('Search recipes and ingredients')
+  return screen.getByLabelText('Search recipes and ingredients') as HTMLInputElement
 }
 
 // The rendered card titles, in order. Reads the title element directly rather
@@ -178,6 +178,30 @@ describe('ListView search', () => {
 
     expect(chipRow('cuisine')).toBeNull()
     expect(cardTitles()).toEqual(['Chicken Stock', 'Adobo', 'Katsu Curry'])
+  })
+
+  it('dismisses the keyboard on Enter without disturbing the results', async () => {
+    const input = await renderList()
+    input.focus()
+    fireEvent.change(input, { target: { value: 'chicken' } })
+    expect(document.activeElement).toBe(input)
+
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    // Blurring is what drops the phone's keyboard; the query must survive it.
+    expect(document.activeElement).not.toBe(input)
+    expect(input.value).toBe('chicken')
+    expect(cardTitles()).toEqual(['Chicken Stock', 'Adobo', 'Katsu Curry'])
+  })
+
+  it('leaves other keys alone', async () => {
+    const input = await renderList()
+    input.focus()
+    fireEvent.change(input, { target: { value: 'chicken' } })
+
+    fireEvent.keyDown(input, { key: 'a' })
+
+    expect(document.activeElement).toBe(input)
   })
 
   it('hides the page header while searching to make room for results', async () => {

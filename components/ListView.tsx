@@ -51,6 +51,13 @@ export function ListView() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             aria-label="Search recipes and ingredients"
+            // Filtering is live, so there is nothing to submit — the only job of
+            // the phone keyboard's Go key is to get out of the way. Blur does
+            // that; the query and results stay put.
+            enterKeyHint="search"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur()
+            }}
           />
           {/* Live count: the keyboard can still cover the list on a short
               screen, so give an unambiguous signal that typing did something. */}
