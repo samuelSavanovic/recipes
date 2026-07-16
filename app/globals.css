@@ -645,6 +645,20 @@ body {
      dark mode, which made this hint invisible (1.50:1). */
   color: var(--ink-faint);
 }
+/* Label on the left, the body field's Write/Preview tabs on the right. Wraps
+   because the two only just clear a 360px screen (~280px of ~304px), and the
+   coarse-pointer rule below grows the tabs further. */
+.rb-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 7px;
+}
+.rb-label-row .rb-label {
+  margin-bottom: 0;
+}
 .rb-input {
   width: 100%;
   font-family: var(--serif);
@@ -781,6 +795,48 @@ body {
 }
 .rb-seg-on:hover {
   color: var(--on-accent);
+}
+/* Compact variant: the cook-time seg fills its field, these sit inline beside a
+   label and size to their text. The coarse-pointer 44px rule below still applies. */
+.rb-seg-sm {
+  flex: none;
+}
+.rb-seg-sm .rb-seg-btn {
+  flex: none;
+  padding: 5px 12px;
+}
+
+/* Body field panels — the textarea and its Preview share one box. */
+.rb-body-panel {
+  display: flex;
+  flex-direction: column;
+}
+/* The author display above outranks the UA [hidden] rule, which would leave both
+   panels visible at once. Restoring it here is what makes `hidden` load-bearing. */
+.rb-body-panel[hidden] {
+  display: none;
+}
+.rb-preview {
+  /* Matches .rb-textarea's min-height: a preview at natural height would collapse
+     the page and shift the actions row on every tab switch. */
+  min-height: 440px;
+  padding: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--paper-2);
+  border-radius: 2px;
+  overflow-wrap: break-word;
+}
+/* .rb-md's top margin spaces it under the title block on the recipe page; in the
+   panel it's a stray gap, as is the first block's own top margin. */
+.rb-preview .rb-md,
+.rb-preview .rb-md > :first-child {
+  margin-top: 0;
+}
+.rb-preview-empty {
+  font-family: var(--mono);
+  font-size: var(--fs-mono-xs);
+  color: var(--ink-faint);
+  margin: 0;
 }
 .rb-textarea {
   font-family: var(--mono);

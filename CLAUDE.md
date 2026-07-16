@@ -17,8 +17,12 @@ on push to `main`**.
   service-worker / DB boundary, outline the approach before implementing. Small, reversible edits:
   just do them.
 - **No scope creep.** The non-goals are real: no offline writes / sync queue / conflict
-  resolution, no live preview in the editor, no per-user accounts / OAuth, no custom markdown
-  parser. Flag "nice to haves" instead of building them.
+  resolution, no side-by-side live preview in the editor, no per-user accounts / OAuth, no
+  custom markdown parser. Flag "nice to haves" instead of building them.
+  - The editor's Write/Preview tabs are the whole of the preview story: a click to switch, and
+    the panel renders through the same `RecipeMarkdown` as the recipe page. A split pane that
+    re-renders as you type is still a non-goal — it buys little on a phone and is the version
+    that grows scroll-sync and debounce machinery.
 
 ## Code principles
 

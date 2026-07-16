@@ -1,11 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState, type KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useRecipes } from '@/lib/store'
 import { COOK_TIMES, type CookTime, type Recipe } from '@/lib/types'
 import { CuisineInput } from './CuisineInput'
 import { MainIngredientsInput } from './MainIngredientsInput'
+import { RecipeMarkdown } from './RecipeMarkdown'
+
+// Which view the body field is showing. Preview renders through the same
+// RecipeMarkdown the recipe page uses, so what you see here is what ships.
+const BODY_TABS = [
+  { id: 'write', label: 'Write' },
+  { id: 'preview', label: 'Preview' },
+] as const
+type BodyTab = (typeof BODY_TABS)[number]['id']
 
 // Editor for new + existing recipes. Writes are online-only and go through the
 // store (which patches IndexedDB + state on success). The slug is server-owned
@@ -40,12 +49,34 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
   const [main, setMain] = useState(recipe?.main ?? '')
   const [cookTime, setCookTime] = useState<CookTime>(recipe?.cook_time ?? '15_30')
   const [body, setBody] = useState(recipe?.body_md ?? '')
+  const [bodyTab, setBodyTab] = useState<BodyTab>('write')
   const [error, setError] = useState('')
   // Which write is in flight, if any — drives the per-button loading indicator.
   const [pending, setPending] = useState<'save' | 'delete' | null>(null)
   const busy = pending !== null
+  const tablistRef = useRef<HTMLDivElement>(null)
 
   const canSave = title.trim().length > 0 && !busy
+
+  // Arrow/Home/End move between tabs (WAI-ARIA tabs pattern). Selection follows
+  // focus, so the panel switches as you arrow — cheap here, both panels are local
+  // state. Roving tabindex keeps the group a single Tab stop.
+  function onTabKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
+    const i = BODY_TABS.findIndex((t) => t.id === bodyTab)
+    const last = BODY_TABS.length - 1
+    let next: number
+    if (e.key === 'ArrowRight') next = i === last ? 0 : i + 1
+    else if (e.key === 'ArrowLeft') next = i === 0 ? last : i - 1
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = last
+    else return
+    e.preventDefault()
+    const id = BODY_TABS[next].id
+    setBodyTab(id)
+    tablistRef.current
+      ?.querySelector<HTMLButtonElement>(`#rb-body-tab-${id}`)
+      ?.focus()
+  }
 
   function cancel() {
     router.push(recipe ? `/recipe/${recipe.id}` : '/')
@@ -157,17 +188,72 @@ function EditForm({ recipe }: { recipe: Recipe | null }) {
       </div>
 
       <div className="rb-field">
-        <label className="rb-label" htmlFor="rb-body">
-          Recipe <span className="rb-label-hint">— plain markdown</span>
-        </label>
-        <textarea
-          id="rb-body"
-          className="rb-textarea"
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder={'## Ingredients\n\n- …'}
-          spellCheck={false}
-        />
+        <div className="rb-label-row">
+          <label className="rb-label" htmlFor="rb-body">
+            Recipe <span className="rb-label-hint">— plain markdown</span>
+          </label>
+          <div
+            className="rb-seg rb-seg-sm"
+            role="tablist"
+            aria-label="Recipe body view"
+            ref={tablistRef}
+          >
+            {BODY_TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                id={`rb-body-tab-${t.id}`}
+                className={`rb-seg-btn ${bodyTab === t.id ? 'rb-seg-on' : ''}`}
+                aria-selected={bodyTab === t.id}
+                aria-controls={`rb-body-panel-${t.id}`}
+                tabIndex={bodyTab === t.id ? 0 : -1}
+                onClick={() => setBodyTab(t.id)}
+                onKeyDown={onTabKeyDown}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Hidden, not unmounted: body text lives in state, but the caret and
+            scroll position live in the DOM and would reset on every trip back
+            from Preview. */}
+        <div
+          id="rb-body-panel-write"
+          className="rb-body-panel"
+          role="tabpanel"
+          aria-labelledby="rb-body-tab-write"
+          hidden={bodyTab !== 'write'}
+        >
+          <textarea
+            id="rb-body"
+            className="rb-textarea"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder={'## Ingredients\n\n- …'}
+            spellCheck={false}
+          />
+        </div>
+
+        {/* The panel stays mounted so aria-controls always resolves; the markdown
+            only renders while visible, so typing doesn't re-parse the body. */}
+        <div
+          id="rb-body-panel-preview"
+          className="rb-body-panel rb-preview"
+          role="tabpanel"
+          aria-labelledby="rb-body-tab-preview"
+          hidden={bodyTab !== 'preview'}
+          tabIndex={0}
+        >
+          {bodyTab === 'preview' &&
+            (body.trim() ? (
+              <RecipeMarkdown source={body} />
+            ) : (
+              <p className="rb-preview-empty">Nothing to preview yet.</p>
+            ))}
+        </div>
       </div>
 
       {error && <div className="rb-error">{error}</div>}
