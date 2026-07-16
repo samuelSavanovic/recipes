@@ -87,24 +87,68 @@ async function fontCacheFirst(request) {
   return res
 }
 
-// Navigations: network-first (so online users always get fresh HTML — this is
-// what avoids the classic stale-shell-after-deploy). Offline, serve the exact
-// URL if we've cached it (a previously-visited recipe returns its full SSR
-// HTML), else fall back to the "/" shell, which renders the route from
-// IndexedDB after mount.
-async function navigate(request) {
+// A first-time navigation (nothing cached yet for this exact URL) still waits
+// on the network below, but only up to this long — past it we assume the
+// network is the bottleneck, not correctness, and hand the tab to the local
+// shell instead of leaving it blank.
+const NAV_TIMEOUT_MS = 1200
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+// Navigations: stale-while-revalidate when we have something cached (this is
+// the startup path — "/" is always precached, and start_url is "/" — so a slow
+// network no longer blocks first paint on a fetch that hangs rather than
+// fails). Serve the cached shell/page immediately and refresh it in the
+// background via event.waitUntil so the tab doesn't get killed mid-fetch.
+// Recipe *data* is never served from this cache — it's the store's
+// IndexedDB → /api/recipes refresh (lib/store.tsx) that keeps content fresh,
+// so a stale-for-one-load shell never means stale recipes.
+//
+// Nothing cached yet (first-ever visit, or a recipe never opened before) is
+// the interesting case: the recipe itself is typically already in IndexedDB
+// (the store's refresh caches the whole list, not just visited ones), so a
+// plain network-first here would block on the round trip for content we
+// already have. Race the fetch against NAV_TIMEOUT_MS; past it, fall back to
+// the cached "/" shell (which renders this exact route from IndexedDB) while
+// letting the fetch keep running in the background to populate the cache for
+// next time. A fetch that fails outright (truly offline) resolves the race
+// with null immediately, same as a timeout.
+async function navigate(event) {
+  const request = event.request
   const cache = await caches.open(CACHE)
-  try {
-    const res = await fetch(request)
-    if (res && res.ok) cache.put(request, res.clone())
-    return res
-  } catch {
-    const exact = await cache.match(request)
-    if (exact) return exact
-    const shell = await cache.match('/')
-    if (shell) return shell
-    return Response.error()
+  const cached = await cache.match(request)
+  if (cached) {
+    event.waitUntil(
+      fetch(request)
+        .then((res) => {
+          if (res && res.ok) return cache.put(request, res.clone())
+        })
+        .catch(() => {
+          /* offline — keep serving the cached shell/page */
+        }),
+    )
+    return cached
   }
+
+  const network = fetch(request)
+    .then((res) => {
+      if (res && res.ok) cache.put(request, res.clone())
+      return res
+    })
+    .catch(() => null)
+
+  const winner = await Promise.race([network, delay(NAV_TIMEOUT_MS).then(() => null)])
+  if (winner) return winner
+
+  // network never rejects (see .catch(() => null) above) — waitUntil just
+  // keeps the worker alive long enough for it to finish caching.
+  event.waitUntil(network)
+  const shell = await cache.match('/')
+  if (shell) return shell
+  const res = await network
+  return res || Response.error()
 }
 
 self.addEventListener('fetch', (event) => {
@@ -117,7 +161,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return // cross-origin: pass through
 
   if (request.mode === 'navigate') {
-    event.respondWith(navigate(request))
+    event.respondWith(navigate(event))
     return
   }
 
