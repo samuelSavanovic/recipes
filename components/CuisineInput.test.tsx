@@ -120,8 +120,17 @@ describe('CuisineInput', () => {
 
     // Italian (used once) must come before Indian (used zero times) even
     // though "Indian" sorts first alphabetically.
-    const options = screen.getAllByRole('option')
-    expect(options.map((o) => o.textContent)).toEqual(['Italian', 'Indian'])
+    //
+    // waitFor, not a bare assertion: both names are in the COMMON_CUISINES seed,
+    // so they render before the store's IDB read resolves. Until it does, every
+    // usage count is 0 and the pool is still in plain alphabetical order — this
+    // raced the load and failed intermittently when the suite ran under load.
+    await waitFor(() =>
+      expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual([
+        'Italian',
+        'Indian',
+      ]),
+    )
 
     // ...and a plain Enter (no ArrowDown needed) commits the more-used match.
     fireEvent.keyDown(input, { key: 'Enter' })
