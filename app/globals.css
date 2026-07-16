@@ -37,23 +37,31 @@
   --overlay: rgba(36, 31, 26, 0.55);
   --th-bg: var(--ink); /* table header — the signature "inked" block */
   --th-fg: var(--paper);
-  --mono: 'SFMono-Regular', ui-monospace, 'JetBrains Mono', Menlo, Consolas,
-    monospace;
+  --mono:
+    'SFMono-Regular', ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
   --serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   /* Fluid type scale. Clamps interpolate between 360px and 1100px viewports.
      Prose steps use --serif; mono/label steps are the small-caps affordances
      and stay tighter. Every font-size below is a token — a literal px size in a
      component rule is a bug, same rule as colours. */
-  --fs-hero: clamp(1.875rem, 1.35rem + 2.35vw, 2.5rem);   /* 30 → 40  recipe/page title */
-  --fs-title: clamp(1.15rem, 1.02rem + 0.57vw, 1.3125rem); /* 18.4 → 21 card title */
-  --fs-h3: clamp(1.0625rem, 1rem + 0.27vw, 1.1875rem);     /* 17 → 19 */
-  --fs-h4: clamp(0.95rem, 0.91rem + 0.16vw, 1rem);         /* 15.2 → 16 */
-  --fs-body: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);      /* 16 → 17 input/body */
-  --fs-mono: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);  /* 13 → 14 */
-  --fs-mono-sm: 0.8125rem;  /* 13 — buttons/links, deliberately static */
-  --fs-mono-xs: 0.75rem;    /* 12 — chips, minibtn */
-  --fs-caps: 0.6875rem;     /* 11 — uppercase tracked labels */
-  --fs-caps-xs: 0.625rem;   /* 10 — chiplabel */
+  --fs-hero: clamp(
+    1.875rem,
+    1.35rem + 2.35vw,
+    2.5rem
+  ); /* 30 → 40  recipe/page title */
+  --fs-title: clamp(
+    1.15rem,
+    1.02rem + 0.57vw,
+    1.3125rem
+  ); /* 18.4 → 21 card title */
+  --fs-h3: clamp(1.0625rem, 1rem + 0.27vw, 1.1875rem); /* 17 → 19 */
+  --fs-h4: clamp(0.95rem, 0.91rem + 0.16vw, 1rem); /* 15.2 → 16 */
+  --fs-body: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem); /* 16 → 17 input/body */
+  --fs-mono: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem); /* 13 → 14 */
+  --fs-mono-sm: 0.8125rem; /* 13 — buttons/links, deliberately static */
+  --fs-mono-xs: 0.75rem; /* 12 — chips, minibtn */
+  --fs-caps: 0.6875rem; /* 11 — uppercase tracked labels */
+  --fs-caps-xs: 0.625rem; /* 10 — chiplabel */
   /* Native controls (the editor textarea's scrollbar + caret, form widgets)
      follow this, not our tokens. */
   color-scheme: light;
@@ -919,12 +927,15 @@ body {
   background: var(--accent);
   color: var(--on-accent);
   font-family: var(--mono);
-  font-size: var(--fs-h4);
+  font-size: var(--fs-h3);
+  font-weight: 900;
   cursor: pointer;
   opacity: 0;
   transform: translateY(8px);
   pointer-events: none;
-  transition: opacity 0.16s, transform 0.16s;
+  transition:
+    opacity 0.16s,
+    transform 0.16s;
 }
 .rb-scrolltop-visible {
   opacity: 1;
