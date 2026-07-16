@@ -928,6 +928,7 @@ body {
   color: var(--on-accent);
   font-family: var(--mono);
   font-size: 1.5rem;
+  line-height: 1; /* else inherits the global 1.6, pushing the ↑ off-center on Android */
   font-weight: 900;
   cursor: pointer;
   opacity: 0;
