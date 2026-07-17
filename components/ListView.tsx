@@ -47,6 +47,8 @@ export function ListView() {
         <div className="rb-searchrow">
           <div className="rb-searchfield">
             <input
+              id="recipe-search"
+              name="recipe-search"
               className="rb-search"
               placeholder="Search recipes and ingredients…"
               value={q}
