@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, type ComponentProps } from 'react'
+import { useEffect, useRef, type ComponentProps } from 'react'
 import { hardNavigate } from '@/lib/hard-navigate'
 
 type AppLinkProps = ComponentProps<typeof Link>
@@ -85,7 +85,16 @@ export function AppLink({ href, onClick, prefetch = false, ...rest }: AppLinkPro
   // navigation was pending has settled, so clear the guard right away instead
   // of waiting out the timeout backstop.
   const pathname = usePathname()
+  // Skip the first run: it fires on mount (e.g. a card list re-rendering
+  // after a click, virtualization bringing a link back), not on an actual
+  // pathname transition, and would wipe a guard set moments ago by the very
+  // click this instance is meant to be tracking.
+  const mounted = useRef(false)
   useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true
+      return
+    }
     clearPendingNavigation()
   }, [pathname])
 
@@ -95,8 +104,21 @@ export function AppLink({ href, onClick, prefetch = false, ...rest }: AppLinkPro
     // Respect modifier/middle clicks (new tab, etc.) — a new-tab open is not
     // "the same navigation intent", so it neither checks nor sets the guard.
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    // Object-form hrefs skip the guard (and the offline fallback below); this
-    // app only ever passes string hrefs.
+    // Offline/slow goes straight to a hard navigation and never touches the
+    // re-click guard: a hard navigation tears down the document, so
+    // usePathname never fires to clear it, and the 3s timeout backstop would
+    // be racing a page that's being destroyed anyway. The browser's own
+    // loading state is the feedback here, not this guard.
+    if (
+      typeof navigator !== 'undefined' &&
+      (!navigator.onLine || isSlowConnection()) &&
+      typeof href === 'string'
+    ) {
+      e.preventDefault()
+      hardNavigate(href)
+      return
+    }
+    // Object-form hrefs skip the guard; this app only ever passes string hrefs.
     if (typeof href === 'string') {
       if (pendingHref === href) {
         // Same href clicked again while its navigation is still pending:
@@ -105,14 +127,6 @@ export function AppLink({ href, onClick, prefetch = false, ...rest }: AppLinkPro
         return
       }
       beginPendingNavigation(href)
-    }
-    if (
-      typeof navigator !== 'undefined' &&
-      (!navigator.onLine || isSlowConnection()) &&
-      typeof href === 'string'
-    ) {
-      e.preventDefault()
-      hardNavigate(href)
     }
   }
 
